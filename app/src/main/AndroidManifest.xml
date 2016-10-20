@@ -23,7 +23,29 @@
         <activity
             android:name=".Activities.BlurtActivity"
             android:label="@string/title_activity_blurt"
+            android:parentActivityName=".Activities.MainActivity"
             android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="fi.tuomela.teemu.blurter.Activities.MainActivity"/>
+        </activity>
+        <activity
+            android:name=".Activities.CreateBlurtActivity"
+            android:label="@string/title_activity_create_blurt"
+            android:parentActivityName=".Activities.MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+        <meta-data
+            android:name="android.support.PARENT_ACTIVITY"
+            android:value="fi.tuomela.teemu.blurter.Activities.MainActivity"/>
+        </activity>
+        <activity
+            android:name=".Activities.CreateCommentActivity"
+            android:label="@string/title_activity_create_comment"
+            android:parentActivityName=".Activities.BlurtActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="fi.tuomela.teemu.blurter.Activities.BlurtActivity"/>
         </activity>
     </application>
 

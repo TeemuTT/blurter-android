@@ -16,14 +16,11 @@ import retrofit2.http.POST;
  */
 
 public interface BlurtService {
+    // Annotations provide the request method and relative path.
     @GET("blurts/")
     Call<List<Blurt>> blurts();
 
     @POST("blurts/")
     Call<Blurt> createBlurt(@Body Blurt blurt);
 
-    Retrofit retrofit = new Retrofit.Builder()
-            .baseUrl("http://192.168.10.50:5000/api/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build();
 }

@@ -3,9 +3,8 @@ package fi.tuomela.teemu.blurter.Activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.view.View;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -13,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -24,14 +24,18 @@ import java.util.List;
 import fi.tuomela.teemu.blurter.Models.Blurt;
 import fi.tuomela.teemu.blurter.R;
 import fi.tuomela.teemu.blurter.RetrofitServices.BlurtService;
+import fi.tuomela.teemu.blurter.Utilities.CustomArrayAdapter;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private ArrayAdapter<Blurt> mArrayAdapter;
+    private Retrofit retrofit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,13 +44,12 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                CreateBlurt(mArrayAdapter);
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Intent intent = new Intent(fab.getContext(), CreateBlurtActivity.class);
+                startActivityForResult(intent, 1);
             }
         });
 
@@ -64,58 +67,79 @@ public class MainActivity extends AppCompatActivity
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                System.out.println("clicked: " + mListView.getItemAtPosition(i).toString());
-                LaunchBlurtActivity((Blurt) mListView.getItemAtPosition(i));
+                Blurt blurt = (Blurt) mListView.getItemAtPosition(i);
+                Intent intent = new Intent(mListView.getContext(), BlurtActivity.class);
+                intent.putExtra("BLURT", new Gson().toJson(blurt));
+                startActivity(intent);
             }
         });
 
-        mArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
+        mArrayAdapter = new CustomArrayAdapter(this, R.layout.custom_list_item_1);
         mListView.setAdapter(mArrayAdapter);
 
-        GetBlurts(mArrayAdapter);
+        // Initialize our Retrofit instance.
+        retrofit = new Retrofit.Builder()
+                .baseUrl(getString(R.string.api_base_url))
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        GetBlurts();
     }
 
-    private void LaunchBlurtActivity(Blurt blurt) {
-        Intent intent = new Intent(this, BlurtActivity.class);
-        intent.putExtra("BLURT", new Gson().toJson(blurt));
-        startActivity(intent);
-    }
-
-    private void GetBlurts(final ArrayAdapter<Blurt> adapter) {
-        BlurtService blurtService = BlurtService.retrofit.create(BlurtService.class);
+    private void GetBlurts() {
+        // Retrofit creates an implementation of our interface.
+        BlurtService blurtService = retrofit.create(BlurtService.class);
+        // Create the Call we wish to make.
         final Call<List<Blurt>> call = blurtService.blurts();
+        // Perform the Call asynchronously.
         call.enqueue(new Callback<List<Blurt>>() {
             @Override
             public void onResponse(Call<List<Blurt>> call, Response<List<Blurt>> response) {
-                adapter.clear();
-                adapter.addAll((response.body()));
-                adapter.notifyDataSetChanged();
+                mArrayAdapter.clear();
+                // Response.body() contains an ArrayList of our Blurt objects,
+                // which we can add to our adapter.
+                mArrayAdapter.addAll((response.body()));
+                mArrayAdapter.notifyDataSetChanged();
             }
 
             @Override
             public void onFailure(Call<List<Blurt>> call, Throwable t) {
-                System.out.println("Failed to get data");
+                Snackbar.make(findViewById(R.id.content_main), R.string.error_get_blurt, Snackbar.LENGTH_LONG).show();
             }
         });
     }
 
-    private void CreateBlurt(final ArrayAdapter<Blurt> adapter) {
-        BlurtService blurtService = BlurtService.retrofit.create(BlurtService.class);
+    private void CreateBlurt(String header, String content) {
+        BlurtService blurtService = retrofit.create(BlurtService.class);
         Blurt blurt = new Blurt();
-        blurt.setName("TestBlurtFromMobile");
-        blurt.setContent("JustSomeFillerContent");
+        blurt.setName(header);
+        blurt.setContent(content);
         final Call<Blurt> call = blurtService.createBlurt(blurt);
         call.enqueue(new Callback<Blurt>() {
             @Override
             public void onResponse(Call<Blurt> call, Response<Blurt> response) {
-                GetBlurts(adapter);
+                GetBlurts();
             }
 
             @Override
             public void onFailure(Call<Blurt> call, Throwable t) {
-                System.out.println("Failed to create Blurt");
+                Snackbar.make(findViewById(R.id.content_main), R.string.error_create_blurt, Snackbar.LENGTH_LONG).show();
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Check which request we're responding to
+        if (requestCode == 1) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+                String header = data.getStringExtra("HEADER");
+                String content = data.getStringExtra("CONTENT");
+                CreateBlurt(header, content);
+            }
+        }
+
     }
 
     @Override
@@ -135,38 +159,18 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
+        if (id == R.id.nav_refresh) {
+            GetBlurts();
+        } else if (id == R.id.nav_create_blurt) {
+            Intent intent = new Intent(this, CreateBlurtActivity.class);
+            startActivityForResult(intent, 1);
+        } else if (id == R.id.nav_settings) {
 
         }
 

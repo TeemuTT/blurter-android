@@ -17,14 +17,13 @@ import retrofit2.http.Path;
  */
 
 public interface CommentService {
+    // Request URL can be updated dynamically using {}-blocks and annotating
+    // the method parameter using @Path.
     @GET("blurts/{id}/comments/")
     Call<List<Comment>> comments(@Path("id") String id);
 
+    // Use the @Body annotation to add an object in the HTTP request body.
     @POST("comments/")
     Call<Comment> createComment(@Body Comment comment);
 
-    Retrofit retrofit = new Retrofit.Builder()
-            .baseUrl("http://192.168.10.50:5000/api/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build();
 }
