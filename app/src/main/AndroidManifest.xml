@@ -34,9 +34,9 @@
             android:label="@string/title_activity_create_blurt"
             android:parentActivityName=".Activities.MainActivity"
             android:theme="@style/AppTheme.NoActionBar">
-        <meta-data
-            android:name="android.support.PARENT_ACTIVITY"
-            android:value="fi.tuomela.teemu.blurter.Activities.MainActivity"/>
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="fi.tuomela.teemu.blurter.Activities.MainActivity"/>
         </activity>
         <activity
             android:name=".Activities.CreateCommentActivity"
@@ -47,6 +47,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="fi.tuomela.teemu.blurter.Activities.BlurtActivity"/>
         </activity>
+
     </application>
 
 </manifest>

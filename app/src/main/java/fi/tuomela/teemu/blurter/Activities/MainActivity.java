@@ -17,6 +17,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.gson.Gson;
 
 import java.util.List;
@@ -76,6 +77,8 @@ public class MainActivity extends AppCompatActivity
 
         mArrayAdapter = new CustomArrayAdapter(this, R.layout.custom_list_item_1);
         mListView.setAdapter(mArrayAdapter);
+
+        FirebaseMessaging.getInstance().subscribeToTopic("general");
 
         // Initialize our Retrofit instance.
         retrofit = new Retrofit.Builder()
