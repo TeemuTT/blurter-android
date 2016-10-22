@@ -2,10 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <group android:checkableBehavior="single">
-        <item
-            android:id="@+id/nav_refresh"
-            android:icon="@android:drawable/stat_notify_sync_noanim"
-            android:title="Refresh" />
+
         <item
             android:id="@+id/nav_create_blurt"
             android:icon="@android:drawable/ic_dialog_email"
@@ -14,6 +11,10 @@
             android:id="@+id/nav_settings"
             android:icon="@drawable/ic_menu_manage"
             android:title="Settings" />
+        <item
+            android:id="@+id/nav_sign_out"
+            android:icon="@android:drawable/stat_notify_sync_noanim"
+            android:title="Sign Out" />
     </group>
 
 </menu>

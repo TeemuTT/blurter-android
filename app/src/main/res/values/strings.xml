@@ -8,8 +8,7 @@
     <string name="title_activity_blurt">Blurt</string>
     <string name="title_activity_create_blurt">Create a new Blurt!</string>
     <string name="title_activity_create_comment">Post a comment</string>
-
-    <string name="api_base_url">http://46.101.133.28:5000/api/</string>
+    <string name="title_activity_sign_in">Sign In</string>
 
     <string name="error_create_blurt">Couldn\'t create post! Try again</string>
     <string name="error_get_blurt">Couldn\'t load data! Try again</string>
