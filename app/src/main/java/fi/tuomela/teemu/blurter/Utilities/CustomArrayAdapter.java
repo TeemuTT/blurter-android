@@ -17,7 +17,7 @@ import fi.tuomela.teemu.blurter.R;
  *
  */
 
-public class CustomArrayAdapter extends ArrayAdapter {
+public class CustomArrayAdapter<T> extends ArrayAdapter<T> {
 
     private Random random = new Random();
 

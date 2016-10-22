@@ -3,7 +3,6 @@ package fi.tuomela.teemu.blurter.Activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -11,26 +10,27 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.gson.Gson;
 
-import java.util.List;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.util.Date;
 
 import fi.tuomela.teemu.blurter.Models.Blurt;
 import fi.tuomela.teemu.blurter.Models.Comment;
 import fi.tuomela.teemu.blurter.R;
-import fi.tuomela.teemu.blurter.RetrofitServices.CommentService;
 import fi.tuomela.teemu.blurter.Utilities.CustomArrayAdapter;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class BlurtActivity extends AppCompatActivity {
 
     private Blurt blurt;
     private ArrayAdapter<Comment> mAdapter;
-    private Retrofit retrofit;
+    private DatabaseReference database;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,28 +51,70 @@ public class BlurtActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
+        // Get the Blurt from the intent that launched this activity.
         Intent intent = getIntent();
         String message = intent.getStringExtra("BLURT");
         blurt = new Gson().fromJson(message, Blurt.class);
 
+        // Set data to layout.
         TextView header = (TextView) findViewById(R.id.header);
-        header.setText(blurt.getName());
+        header.setText(blurt.name);
         TextView date = (TextView) findViewById(R.id.date);
-        date.setText(blurt.getDate());
+        DateFormat df = DateFormat.getDateInstance();
+        Date d;
+        try {
+            d = df.parse(blurt.date);
+        } catch (ParseException pe) {
+            d = new Date();
+        }
+        date.setText(df.format(d));
         TextView content = (TextView) findViewById(R.id.content);
-        content.setText(blurt.getContent());
+        content.setText(blurt.content);
 
+        // ListView for comments.
         ListView mListView = (ListView) findViewById(R.id.comments);
-        mAdapter = new CustomArrayAdapter(this, R.layout.custom_list_item_1);
+
+        // Custom adapter to populate ListView.
+        mAdapter = new CustomArrayAdapter<>(this, R.layout.custom_list_item_1);
         mListView.setAdapter(mAdapter);
 
-        // Initialize our Retrofit instance.
-        retrofit = new Retrofit.Builder()
-                .baseUrl(getString(R.string.api_base_url))
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+        // Reference to Firebase database.
+        database = FirebaseDatabase.getInstance().getReference();
 
-        GetComments();
+        // Reference to all comments for a specific blurt.
+        DatabaseReference commentsref = database.child("comments").child(blurt.id);
+
+        // Listen to changes in the database.
+        commentsref.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                // Whenever a comment is created, we add it to our adapter.
+                Comment comment = dataSnapshot.getValue(Comment.class);
+                comment.id = dataSnapshot.getKey();
+                mAdapter.insert(comment, 0);
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("Failed to read data: " + databaseError.getCode());
+            }
+        });
+
     }
 
     @Override
@@ -88,40 +130,13 @@ public class BlurtActivity extends AppCompatActivity {
 
     }
 
-    private void GetComments() {
-        CommentService commentService = retrofit.create(CommentService.class);
-        final Call<List<Comment>> call = commentService.comments(blurt.get_id());
-        call.enqueue(new Callback<List<Comment>>() {
-            @Override
-            public void onResponse(Call<List<Comment>> call, Response<List<Comment>> response) {
-                mAdapter.clear();
-                mAdapter.addAll((response.body()));
-                mAdapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onFailure(Call<List<Comment>> call, Throwable t) {
-                Snackbar.make(findViewById(R.id.content_blurt), R.string.error_get_comment, Snackbar.LENGTH_LONG).show();
-            }
-        });
-    }
-
     private void CreateComment(String content) {
-        CommentService commentService = retrofit.create(CommentService.class);
         Comment comment = new Comment();
-        comment.setTarget(blurt.get_id());
-        comment.setContent(content);
-        final Call<Comment> call = commentService.createComment(comment);
-        call.enqueue(new Callback<Comment>() {
-            @Override
-            public void onResponse(Call<Comment> call, Response<Comment> response) {
-                GetComments();
-            }
+        comment.target = blurt.id;
+        comment.date = new Date().toString();
+        comment.content = content;
 
-            @Override
-            public void onFailure(Call<Comment> call, Throwable t) {
-                Snackbar.make(findViewById(R.id.content_blurt), R.string.error_create_comment, Snackbar.LENGTH_LONG).show();
-            }
-        });
+        DatabaseReference commentsref = database.child("comments").child(blurt.id);
+        commentsref.push().setValue(comment);
     }
 }

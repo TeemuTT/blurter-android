@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -17,26 +16,25 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.gson.Gson;
 
-import java.util.List;
+import java.util.Date;
 
 import fi.tuomela.teemu.blurter.Models.Blurt;
 import fi.tuomela.teemu.blurter.R;
-import fi.tuomela.teemu.blurter.RetrofitServices.BlurtService;
 import fi.tuomela.teemu.blurter.Utilities.CustomArrayAdapter;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private ArrayAdapter<Blurt> mArrayAdapter;
-    private Retrofit retrofit;
+    private DatabaseReference database;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,8 +61,8 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        // ListView for our Blurts.
         final ListView mListView = (ListView) findViewById(R.id.blurtview);
-
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -75,60 +73,62 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        mArrayAdapter = new CustomArrayAdapter(this, R.layout.custom_list_item_1);
+        // Custom ArrayAdapter to populate ListView.
+        mArrayAdapter = new CustomArrayAdapter<>(this, R.layout.custom_list_item_1);
         mListView.setAdapter(mArrayAdapter);
 
+        // Register to 'general' topic.
+        // Node.js fcm-node can't target user segment so topics are the way
+        // to send notifications to all devices.
         FirebaseMessaging.getInstance().subscribeToTopic("general");
 
-        // Initialize our Retrofit instance.
-        retrofit = new Retrofit.Builder()
-                .baseUrl(getString(R.string.api_base_url))
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+        // Reference to Firebase database.
+        database = FirebaseDatabase.getInstance().getReference();
 
-        GetBlurts();
-    }
+        // Reference to all Blurts.
+        DatabaseReference blurtsref = database.child("blurts");
 
-    private void GetBlurts() {
-        // Retrofit creates an implementation of our interface.
-        BlurtService blurtService = retrofit.create(BlurtService.class);
-        // Create the Call we wish to make.
-        final Call<List<Blurt>> call = blurtService.blurts();
-        // Perform the Call asynchronously.
-        call.enqueue(new Callback<List<Blurt>>() {
+        // Listen to changes in the database.
+        blurtsref.addChildEventListener(new ChildEventListener() {
             @Override
-            public void onResponse(Call<List<Blurt>> call, Response<List<Blurt>> response) {
-                mArrayAdapter.clear();
-                // Response.body() contains an ArrayList of our Blurt objects,
-                // which we can add to our adapter.
-                mArrayAdapter.addAll((response.body()));
-                mArrayAdapter.notifyDataSetChanged();
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                // Whenever a blurt is created, we add it to our adapter.
+                Blurt blurt = dataSnapshot.getValue(Blurt.class);
+                blurt.id = dataSnapshot.getKey();
+                mArrayAdapter.insert(blurt, 0);
             }
 
             @Override
-            public void onFailure(Call<List<Blurt>> call, Throwable t) {
-                Snackbar.make(findViewById(R.id.content_main), R.string.error_get_blurt, Snackbar.LENGTH_LONG).show();
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                System.out.println("Failed to read data: " + databaseError.getCode());
             }
         });
+
     }
 
     private void CreateBlurt(String header, String content) {
-        BlurtService blurtService = retrofit.create(BlurtService.class);
         Blurt blurt = new Blurt();
-        blurt.setName(header);
-        blurt.setContent(content);
-        final Call<Blurt> call = blurtService.createBlurt(blurt);
-        call.enqueue(new Callback<Blurt>() {
-            @Override
-            public void onResponse(Call<Blurt> call, Response<Blurt> response) {
-                GetBlurts();
-            }
+        blurt.name = header;
+        blurt.content = content;
+        blurt.date = new Date().toString();
 
-            @Override
-            public void onFailure(Call<Blurt> call, Throwable t) {
-                Snackbar.make(findViewById(R.id.content_main), R.string.error_create_blurt, Snackbar.LENGTH_LONG).show();
-            }
-        });
+        DatabaseReference blurtsref = database.child("blurts");
+        blurtsref.push().setValue(blurt);
     }
 
     @Override
@@ -169,7 +169,7 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_refresh) {
-            GetBlurts();
+
         } else if (id == R.id.nav_create_blurt) {
             Intent intent = new Intent(this, CreateBlurtActivity.class);
             startActivityForResult(intent, 1);
