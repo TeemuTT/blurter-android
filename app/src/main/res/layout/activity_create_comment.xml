@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="fi.tuomela.teemu.blurter.Activities.CreateCommentActivity">
+    tools:context="fi.tuomela.teemu.blurtermongo.Activities.CreateCommentActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"

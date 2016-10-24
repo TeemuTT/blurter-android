@@ -1,4 +1,4 @@
-package fi.tuomela.teemu.blurter.Activities;
+package fi.tuomela.teemu.blurtermongo.Activities;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -15,11 +15,11 @@ import com.google.gson.Gson;
 
 import java.util.List;
 
-import fi.tuomela.teemu.blurter.Models.Blurt;
-import fi.tuomela.teemu.blurter.Models.Comment;
-import fi.tuomela.teemu.blurter.R;
-import fi.tuomela.teemu.blurter.RetrofitServices.CommentService;
-import fi.tuomela.teemu.blurter.Utilities.CustomArrayAdapter;
+import fi.tuomela.teemu.blurtermongo.Models.Blurt;
+import fi.tuomela.teemu.blurtermongo.Models.Comment;
+import fi.tuomela.teemu.blurtermongo.R;
+import fi.tuomela.teemu.blurtermongo.RetrofitServices.CommentService;
+import fi.tuomela.teemu.blurtermongo.Utilities.CustomArrayAdapter;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -63,7 +63,7 @@ public class BlurtActivity extends AppCompatActivity {
         content.setText(blurt.getContent());
 
         ListView mListView = (ListView) findViewById(R.id.comments);
-        mAdapter = new CustomArrayAdapter(this, R.layout.custom_list_item_1);
+        mAdapter = new CustomArrayAdapter<>(this, R.layout.custom_list_item_1);
         mListView.setAdapter(mAdapter);
 
         // Initialize our Retrofit instance.
@@ -85,7 +85,6 @@ public class BlurtActivity extends AppCompatActivity {
                 CreateComment(content);
             }
         }
-
     }
 
     private void GetComments() {
@@ -108,9 +107,7 @@ public class BlurtActivity extends AppCompatActivity {
 
     private void CreateComment(String content) {
         CommentService commentService = retrofit.create(CommentService.class);
-        Comment comment = new Comment();
-        comment.setTarget(blurt.get_id());
-        comment.setContent(content);
+        Comment comment = new Comment(content, blurt.get_id());
         final Call<Comment> call = commentService.createComment(comment);
         call.enqueue(new Callback<Comment>() {
             @Override

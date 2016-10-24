@@ -1,4 +1,4 @@
-package fi.tuomela.teemu.blurter.Activities;
+package fi.tuomela.teemu.blurtermongo.Activities;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,7 +8,8 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.MultiAutoCompleteTextView;
 
-import fi.tuomela.teemu.blurter.R;
+import fi.tuomela.teemu.blurtermongo.R;
+
 
 public class CreateBlurtActivity extends AppCompatActivity {
 

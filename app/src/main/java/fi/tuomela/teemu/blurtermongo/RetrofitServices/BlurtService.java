@@ -1,11 +1,9 @@
-package fi.tuomela.teemu.blurter.RetrofitServices;
+package fi.tuomela.teemu.blurtermongo.RetrofitServices;
 
 import java.util.List;
 
-import fi.tuomela.teemu.blurter.Models.Blurt;
+import fi.tuomela.teemu.blurtermongo.Models.Blurt;
 import retrofit2.Call;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;

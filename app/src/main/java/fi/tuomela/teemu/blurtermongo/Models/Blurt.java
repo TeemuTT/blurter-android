@@ -1,4 +1,4 @@
-package fi.tuomela.teemu.blurter.Models;
+package fi.tuomela.teemu.blurtermongo.Models;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -15,6 +15,15 @@ public class Blurt {
     private Date date;
     private String content;
 
+    public Blurt() {
+
+    }
+
+    public Blurt(String name, String content) {
+        this.name = name;
+        this.content = content;
+    }
+
     @Override
     public String toString() {
         return name;
@@ -29,20 +38,12 @@ public class Blurt {
     }
 
     public String getDate() {
-//        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-        DateFormat asd = DateFormat.getDateInstance();
-        return asd.format(date);
+        DateFormat df = DateFormat.getDateInstance();
+        return df.format(date);
     }
 
     public String getContent() {
         return content;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
 }

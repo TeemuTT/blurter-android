@@ -1,7 +1,8 @@
-package fi.tuomela.teemu.blurter.Utilities;
+package fi.tuomela.teemu.blurtermongo.Utilities;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,14 +11,15 @@ import android.widget.TextView;
 
 import java.util.Random;
 
-import fi.tuomela.teemu.blurter.R;
+import fi.tuomela.teemu.blurtermongo.R;
+
 
 /**
  * Created by Teemu on 19.10.2016.
  *
  */
 
-public class CustomArrayAdapter extends ArrayAdapter {
+public class CustomArrayAdapter<T> extends ArrayAdapter<T> {
 
     private Random random = new Random();
 
@@ -26,7 +28,8 @@ public class CustomArrayAdapter extends ArrayAdapter {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    @NonNull
+    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         View v = convertView;
 
         if (v == null) {

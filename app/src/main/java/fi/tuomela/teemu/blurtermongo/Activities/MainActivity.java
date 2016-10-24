@@ -1,7 +1,8 @@
-package fi.tuomela.teemu.blurter.Activities;
+package fi.tuomela.teemu.blurtermongo.Activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -22,10 +23,10 @@ import com.google.gson.Gson;
 
 import java.util.List;
 
-import fi.tuomela.teemu.blurter.Models.Blurt;
-import fi.tuomela.teemu.blurter.R;
-import fi.tuomela.teemu.blurter.RetrofitServices.BlurtService;
-import fi.tuomela.teemu.blurter.Utilities.CustomArrayAdapter;
+import fi.tuomela.teemu.blurtermongo.Models.Blurt;
+import fi.tuomela.teemu.blurtermongo.R;
+import fi.tuomela.teemu.blurtermongo.RetrofitServices.BlurtService;
+import fi.tuomela.teemu.blurtermongo.Utilities.CustomArrayAdapter;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -75,7 +76,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        mArrayAdapter = new CustomArrayAdapter(this, R.layout.custom_list_item_1);
+        mArrayAdapter = new CustomArrayAdapter<>(this, R.layout.custom_list_item_1);
         mListView.setAdapter(mArrayAdapter);
 
         FirebaseMessaging.getInstance().subscribeToTopic("general");
@@ -114,9 +115,7 @@ public class MainActivity extends AppCompatActivity
 
     private void CreateBlurt(String header, String content) {
         BlurtService blurtService = retrofit.create(BlurtService.class);
-        Blurt blurt = new Blurt();
-        blurt.setName(header);
-        blurt.setContent(content);
+        Blurt blurt = new Blurt(header, content);
         final Call<Blurt> call = blurtService.createBlurt(blurt);
         call.enqueue(new Callback<Blurt>() {
             @Override
@@ -142,7 +141,6 @@ public class MainActivity extends AppCompatActivity
                 CreateBlurt(header, content);
             }
         }
-
     }
 
     @Override
@@ -164,7 +162,7 @@ public class MainActivity extends AppCompatActivity
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
