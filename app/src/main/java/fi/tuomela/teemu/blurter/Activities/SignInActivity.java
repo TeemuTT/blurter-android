@@ -53,6 +53,7 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
                     System.out.println("signed in");
                     Intent intent = new Intent(SignInActivity.this, MainActivity.class);
                     startActivity(intent);
+                    finish();
                 } else {
                     System.out.println("signed out");
                 }
